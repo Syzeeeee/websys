@@ -4,6 +4,10 @@
 CREATE DATABASE IF NOT EXISTS recipe_management;
 USE recipe_management;
 
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS recipes;
+DROP TABLE IF EXISTS users;
+
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,6 +22,7 @@ CREATE TABLE IF NOT EXISTS recipes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
+    category ENUM('appetizer', 'main course', 'dessert') NOT NULL DEFAULT 'main course',
     description TEXT,
     ingredients TEXT NOT NULL,
     instructions TEXT NOT NULL,
