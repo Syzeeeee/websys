@@ -7,6 +7,7 @@ USE recipe_management;
 -- Drop existing tables if they exist
 DROP TABLE IF EXISTS recipes;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS favorites;
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
@@ -31,6 +32,17 @@ CREATE TABLE IF NOT EXISTS recipes (
     image VARCHAR(255),
     created_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Create favorites table
+CREATE TABLE IF NOT EXISTS favorites (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    recipe_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_favorite (user_id, recipe_id)
 );
 
 -- Create indexes

@@ -25,6 +25,7 @@ require_once __DIR__ . '/../includes/functions.php';
                     <li><a href="/recipe_management/recipes/index.php">Recipes</a></li>
                     <?php if(isset($_SESSION['user_id'])): ?>
                         <li><a href="/recipe_management/recipes/add.php">Add Recipe</a></li>
+                        <li><a href="/recipe_management/profile.php"><i class="fas fa-user"></i> My Profile</a></li>
                         <li><a href="/recipe_management/auth/logout.php">Logout</a></li>
                     <?php else: ?>
                         <li><a href="/recipe_management/auth/login.php">Login</a></li>

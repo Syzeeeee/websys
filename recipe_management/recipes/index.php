@@ -7,6 +7,16 @@ $category = isset($_GET['category']) ? sanitize_input($_GET['category']) : '';
 $sort = isset($_GET['sort']) ? sanitize_input($_GET['sort']) : 'date_desc';
 $recipes = [];
 
+// Get favorite recipes for current user
+$favorites = [];
+if (is_logged_in()) {
+    $stmt = $conn->prepare("SELECT recipe_id FROM favorites WHERE user_id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    while ($row = $stmt->fetch()) {
+        $favorites[] = $row['recipe_id'];
+    }
+}
+
 if (!empty($search)) {
     $recipes = search_recipes($search, $category, $sort);
 } else {
@@ -21,6 +31,38 @@ $sort_options = [
     'date_asc' => 'Oldest First',
 ];
 ?>
+
+<style>
+.recipe-card {
+    position: relative;
+}
+
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #fff;
+    cursor: pointer;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+    z-index: 2;
+    transition: transform 0.2s;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+}
+
+.favorite-btn.active {
+    color: #ff4444;
+}
+
+.favorite-btn i {
+    pointer-events: none;
+}
+</style>
 
 <div class="page-header">
     <h2>Recipes</h2>
@@ -77,6 +119,12 @@ $sort_options = [
     <div class="recipes-grid">
         <?php foreach ($recipes as $recipe): ?>
             <div class="recipe-card">
+                <?php if (is_logged_in()): ?>
+                    <button class="favorite-btn <?php echo in_array($recipe['id'], $favorites) ? 'active' : ''; ?>" 
+                            data-recipe-id="<?php echo $recipe['id']; ?>">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                <?php endif; ?>
                 <div class="recipe-image" style="background-image: url('../uploads/<?php echo !empty($recipe['image']) ? $recipe['image'] : 'default-recipe.jpg'; ?>')"></div>
                 <div class="recipe-info">
                     <h3><a href="view.php?id=<?php echo $recipe['id']; ?>"><?php echo $recipe['title']; ?></a></h3>
@@ -92,5 +140,39 @@ $sort_options = [
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const recipeId = this.dataset.recipeId;
+            
+            try {
+                const response = await fetch('toggle_favorite.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `recipe_id=${recipeId}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.classList.toggle('active');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while updating favorite status');
+            }
+        });
+    });
+});
+</script>
 
 <?php require_once '../includes/footer.php'; ?> 
