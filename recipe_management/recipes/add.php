@@ -8,6 +8,7 @@ check_login();
 $error = '';
 $success = false;
 $title = '';
+$category = '';
 $description = '';
 $ingredients = '';
 $instructions = '';
@@ -16,6 +17,7 @@ $servings = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = sanitize_input($_POST['title']);
+    $category = sanitize_input($_POST['category']);
     $description = sanitize_input($_POST['description']);
     $ingredients = sanitize_input($_POST['ingredients']);
     $instructions = sanitize_input($_POST['instructions']);
@@ -23,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $servings = sanitize_input($_POST['servings']);
     $user_id = $_SESSION['user_id'];
     
-    if (empty($title) || empty($ingredients) || empty($instructions)) {
-        $error = "Title, ingredients, and instructions are required";
+    if (empty($title) || empty($ingredients) || empty($instructions) || empty($category)) {
+        $error = "Title, category, ingredients, and instructions are required";
     } else {
         $image = '';
         
@@ -56,10 +58,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (empty($error)) {
             // Insert recipe into database
-            $stmt = $conn->prepare("INSERT INTO recipes (user_id, title, description, ingredients, instructions, cooking_time, servings, image, created_at) 
-                                   VALUES (:user_id, :title, :description, :ingredients, :instructions, :cooking_time, :servings, :image, NOW())");
+            $stmt = $conn->prepare("INSERT INTO recipes (user_id, title, category, description, ingredients, instructions, cooking_time, servings, image, created_at) 
+                                   VALUES (:user_id, :title, :category, :description, :ingredients, :instructions, :cooking_time, :servings, :image, NOW())");
             $stmt->bindParam(':user_id', $user_id);
             $stmt->bindParam(':title', $title);
+            $stmt->bindParam(':category', $category);
             $stmt->bindParam(':description', $description);
             $stmt->bindParam(':ingredients', $ingredients);
             $stmt->bindParam(':instructions', $instructions);
@@ -70,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->execute()) {
                 $success = true;
                 // Clear form fields
-                $title = $description = $ingredients = $instructions = $cooking_time = $servings = '';
+                $title = $category = $description = $ingredients = $instructions = $cooking_time = $servings = '';
             } else {
                 $error = "Error adding recipe. Please try again.";
             }
@@ -96,6 +99,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label for="title">Recipe Title</label>
             <input type="text" id="title" name="title" class="form-control" value="<?php echo $title; ?>" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category" class="form-control" required>
+                <option value="" <?php echo empty($category) ? 'selected' : ''; ?>>Select a category</option>
+                <option value="appetizer" <?php echo $category === 'appetizer' ? 'selected' : ''; ?>>Appetizer</option>
+                <option value="main course" <?php echo $category === 'main course' ? 'selected' : ''; ?>>Main Course</option>
+                <option value="dessert" <?php echo $category === 'dessert' ? 'selected' : ''; ?>>Dessert</option>
+            </select>
         </div>
         
         <div class="form-group">
